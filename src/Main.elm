@@ -1,42 +1,50 @@
-module Main exposing (Model, Msg(..), init, main, update)
+module Main exposing (Model, init, main, update)
 
 import Browser
-import Html exposing (Html, button, div, text)
-import Html.Events exposing (onClick)
+import Css exposing (..)
+import Css.Global exposing (..)
+import Dungeon exposing (Dungeon)
+import Html.Styled exposing (Html, div, toUnstyled)
 
 
 main =
-    Browser.sandbox { init = init, update = update, view = view }
+    Browser.sandbox { init = init, update = update, view = view >> toUnstyled }
 
 
 type alias Model =
-    Int
+    Dungeon
 
 
 init : Model
 init =
-    0
+    Dungeon.init
 
 
-type Msg
-    = Increment
-    | Decrement
+type alias Msg =
+    Dungeon.Msg
 
 
 update : Msg -> Model -> Model
 update msg model =
     case msg of
-        Increment ->
-            model + 1
-
-        Decrement ->
-            model - 1
+        Dungeon.None ->
+            model
 
 
 view : Model -> Html Msg
 view model =
     div []
-        [ button [ onClick Decrement ] [ text "-" ]
-        , div [] [ text (String.fromInt model) ]
-        , button [ onClick Increment ] [ text "+" ]
+        [ global
+            [ selector "body"
+                [ width (vw 100)
+                , height (vh 100)
+                , margin zero
+                , padding zero
+                , fontSize (px 8)
+                , displayFlex
+                , alignItems center
+                , justifyContent center
+                ]
+            ]
+        , Dungeon.view model
         ]
