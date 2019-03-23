@@ -16,12 +16,26 @@ init position =
 
 
 type Msg
-    = None
+    = MoveLeft
+    | MoveRight
+    | MoveUp
+    | MoveDown
 
 
 update : Msg -> Hero -> Hero
-update _ model =
-    model
+update msg hero =
+    case msg of
+        MoveLeft ->
+            { hero | position = Position.init (hero.position.x - 1) hero.position.y }
+
+        MoveRight ->
+            { hero | position = Position.init (hero.position.x + 1) hero.position.y }
+
+        MoveUp ->
+            { hero | position = Position.init hero.position.x (hero.position.y - 1) }
+
+        MoveDown ->
+            { hero | position = Position.init hero.position.x (hero.position.y + 1) }
 
 
 view : Hero -> Html Msg
