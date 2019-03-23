@@ -1,9 +1,10 @@
-module Main exposing (Model, init, main, update)
+module Main exposing (App, init, main, update)
 
 import Browser
 import Css exposing (..)
 import Css.Global exposing (..)
 import Dungeon exposing (Dungeon)
+import Hero
 import Html.Styled exposing (Html, div, toUnstyled)
 
 
@@ -11,28 +12,28 @@ main =
     Browser.sandbox { init = init, update = update, view = view >> toUnstyled }
 
 
-type alias Model =
-    Dungeon
+type alias App =
+    { dungeon : Dungeon }
 
 
-init : Model
+init : App
 init =
-    Dungeon.init
+    { dungeon = Dungeon.init }
 
 
-type alias Msg =
-    Dungeon.Msg
+type Msg
+    = DungeonMsg Dungeon.Msg
 
 
-update : Msg -> Model -> Model
-update msg model =
+update : Msg -> App -> App
+update msg app =
     case msg of
-        Dungeon.None ->
-            model
+        DungeonMsg dungeonMsg ->
+            { app | dungeon = Dungeon.update dungeonMsg app.dungeon }
 
 
-view : Model -> Html Msg
-view model =
+view : App -> Html Msg
+view app =
     div []
         [ global
             [ selector "body"
@@ -46,5 +47,5 @@ view model =
                 , justifyContent center
                 ]
             ]
-        , Dungeon.view model
+        , Html.Styled.map (\msg -> DungeonMsg msg) (Dungeon.view app.dungeon)
         ]
