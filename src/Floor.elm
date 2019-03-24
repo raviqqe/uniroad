@@ -1,9 +1,8 @@
 module Floor exposing (Floor, generate, height, inside, width)
 
-import List
 import Position exposing (Position)
 import Random
-import Room exposing (Room)
+import Room
 import Set exposing (Set)
 
 

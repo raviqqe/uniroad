@@ -2,7 +2,6 @@ module Hero exposing (Hero, Msg(..), init, update, view)
 
 import Css exposing (..)
 import Html.Styled exposing (Html, div, styled, text)
-import List exposing (repeat)
 import Position exposing (Position)
 
 

@@ -6,7 +6,7 @@ import Css exposing (..)
 import Css.Global exposing (..)
 import Dungeon exposing (Dungeon)
 import Hero
-import Html.Styled exposing (Html, div, toUnstyled)
+import Html.Styled exposing (div, toUnstyled)
 import Json.Decode exposing (Decoder)
 
 

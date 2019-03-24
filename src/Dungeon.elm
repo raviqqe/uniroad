@@ -4,8 +4,8 @@ import Css exposing (..)
 import Floor exposing (Floor)
 import Hero exposing (Hero)
 import Html.Styled exposing (Html, styled, table, td, tr)
-import List exposing (map, range, repeat)
-import Position exposing (Position)
+import List exposing (map, range)
+import Position
 import Random
 
 
