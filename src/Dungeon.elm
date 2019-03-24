@@ -3,7 +3,7 @@ module Dungeon exposing (Dungeon, Msg(..), init, update, view)
 import Css exposing (..)
 import Floor exposing (Floor)
 import Hero exposing (Hero)
-import Html.Styled exposing (Html, styled, table, td, text, tr)
+import Html.Styled exposing (Html, div, styled, text)
 import List exposing (map, range)
 import Position
 import Random exposing (Generator)
@@ -100,21 +100,27 @@ view dungeon =
     in
     case dungeon.floor of
         Just floor ->
-            styled table
-                [ borderSpacing (px 0) ]
+            styled div
+                [ displayFlex
+                , flexDirection column
+                , flexWrap noWrap
+                ]
                 []
                 (map
                     (\y ->
-                        styled tr
-                            [ display block
-                            , whiteSpace noWrap
+                        styled div
+                            [ displayFlex
+                            , flexDirection row
+                            , flexWrap noWrap
                             ]
                             []
                             (map
                                 (\x ->
                                     styled
-                                        td
-                                        [ display inlineBlock
+                                        div
+                                        [ displayFlex
+                                        , justifyContent center
+                                        , alignItems center
                                         , width (em 1.5)
                                         , height (em 1.5)
                                         , (backgroundColor << hex)
