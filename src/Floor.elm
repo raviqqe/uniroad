@@ -3,6 +3,7 @@ module Floor exposing (Floor, generate, generatePosition, height, inside, width)
 import Maybe
 import Position exposing (Position)
 import Random exposing (Generator)
+import Result
 import Room
 import Set exposing (Set)
 
@@ -30,12 +31,9 @@ generatePosition floor =
         positions =
             Set.toList floor.validPositions
     in
-    case Maybe.map2 Random.uniform (List.head positions) (List.tail positions) of
-        Just position ->
-            Ok position
-
-        Nothing ->
-            Err "no valid postions in a floor"
+    Result.fromMaybe
+        "no valid positions in a floor"
+        (Maybe.map2 Random.uniform (List.head positions) (List.tail positions))
 
 
 width : Int
