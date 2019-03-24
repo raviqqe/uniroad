@@ -1,7 +1,8 @@
-module Floor exposing (Floor, generate, height, inside, width)
+module Floor exposing (Floor, generate, generatePosition, height, inside, width)
 
+import Maybe
 import Position exposing (Position)
-import Random
+import Random exposing (Generator)
 import Room
 import Set exposing (Set)
 
@@ -11,7 +12,7 @@ type alias Floor =
     }
 
 
-generate : Random.Generator Floor
+generate : Generator Floor
 generate =
     Random.map
         (\room -> { validPositions = Room.toPositions room })
@@ -21,6 +22,20 @@ generate =
 inside : Floor -> Position -> Bool
 inside floor position =
     Set.member position floor.validPositions
+
+
+generatePosition : Floor -> Result String (Generator Position)
+generatePosition floor =
+    let
+        positions =
+            Set.toList floor.validPositions
+    in
+    case Maybe.map2 Random.uniform (List.head positions) (List.tail positions) of
+        Just position ->
+            Ok position
+
+        Nothing ->
+            Err "no valid postions in a floor"
 
 
 width : Int

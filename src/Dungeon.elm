@@ -3,10 +3,10 @@ module Dungeon exposing (Dungeon, Msg(..), init, update, view)
 import Css exposing (..)
 import Floor exposing (Floor)
 import Hero exposing (Hero)
-import Html.Styled exposing (Html, styled, table, td, tr)
+import Html.Styled exposing (Html, styled, table, td, text, tr)
 import List exposing (map, range)
 import Position
-import Random
+import Random exposing (Generator)
 
 
 type alias Dungeon =
@@ -22,13 +22,13 @@ init =
       , generatingFloor = True
       , hero = Hero.init (Position.init 16 16)
       }
-    , Random.generate GenerateFloor Floor.generate
+    , Random.generate Renew generate
     )
 
 
 type Msg
     = HeroMsg Hero.Msg
-    | GenerateFloor Floor
+    | Renew (Result String ( Floor, Hero ))
 
 
 update : Msg -> Dungeon -> ( Dungeon, Cmd Msg )
@@ -42,7 +42,7 @@ update msg dungeon =
 
                     else
                         ( { dungeon | generatingFloor = True }
-                        , Random.generate GenerateFloor Floor.generate
+                        , Random.generate Renew generate
                         )
 
                 Just floor ->
@@ -61,40 +61,83 @@ update msg dungeon =
                     , Cmd.none
                     )
 
-        GenerateFloor newFloor ->
-            ( { dungeon
-                | floor = Just newFloor
-                , generatingFloor = False
-              }
-            , Cmd.none
-            )
+        Renew result ->
+            case result of
+                Ok ( floor, hero ) ->
+                    ( { dungeon
+                        | floor = Just floor
+                        , generatingFloor = False
+                        , hero = hero
+                      }
+                    , Cmd.none
+                    )
+
+                Err message ->
+                    Debug.todo message
+
+
+generate : Generator (Result String ( Floor, Hero ))
+generate =
+    Random.andThen
+        (\floor ->
+            case Floor.generatePosition floor of
+                Ok generator ->
+                    Random.map
+                        (\position -> Ok ( floor, Hero.init position ))
+                        generator
+
+                Err message ->
+                    Random.constant (Err message)
+        )
+        Floor.generate
 
 
 view : Dungeon -> Html Msg
-view { floor, hero } =
-    styled table
-        [ borderSpacing (px 0) ]
-        []
-        (map
-            (\y ->
-                styled tr
-                    [ display block, whiteSpace noWrap, backgroundColor (hex "#000000") ]
-                    []
-                    (map
-                        (\x ->
-                            styled
-                                td
-                                [ display inlineBlock, width (em 1.5), height (em 1.5) ]
-                                []
-                                (if hero.position == Position.init x y then
-                                    [ Html.Styled.map HeroMsg (Hero.view hero) ]
+view dungeon =
+    let
+        hero =
+            dungeon.hero
+    in
+    case dungeon.floor of
+        Just floor ->
+            styled table
+                [ borderSpacing (px 0) ]
+                []
+                (map
+                    (\y ->
+                        styled tr
+                            [ display block
+                            , whiteSpace noWrap
+                            ]
+                            []
+                            (map
+                                (\x ->
+                                    styled
+                                        td
+                                        [ display inlineBlock
+                                        , width (em 1.5)
+                                        , height (em 1.5)
+                                        , (backgroundColor << hex)
+                                            (if Floor.inside floor (Position.init x y) then
+                                                "#000000"
 
-                                 else
-                                    []
+                                             else
+                                                "#444444"
+                                            )
+                                        ]
+                                        []
+                                        (if hero.position == Position.init x y then
+                                            [ Html.Styled.map HeroMsg (Hero.view hero) ]
+
+                                         else
+                                            []
+                                        )
                                 )
-                        )
-                        (range 1 Floor.width)
+                                (range 1 Floor.width)
+                            )
                     )
-            )
-            (range 1 Floor.height)
-        )
+                    (range 1 Floor.height)
+                )
+
+        Nothing ->
+            text "loading"
