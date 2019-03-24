@@ -25,7 +25,11 @@ type alias App =
 
 init : () -> ( App, Cmd Msg )
 init flags =
-    ( { dungeon = Dungeon.init }, Cmd.none )
+    let
+        ( dungeon, cmd ) =
+            Dungeon.init
+    in
+    ( { dungeon = dungeon }, Cmd.map DungeonMsg cmd )
 
 
 type Msg
@@ -37,7 +41,11 @@ update : Msg -> App -> ( App, Cmd Msg )
 update msg app =
     case msg of
         DungeonMsg dungeonMsg ->
-            ( { app | dungeon = Dungeon.update dungeonMsg app.dungeon }, Cmd.none )
+            let
+                ( dungeon, cmd ) =
+                    Dungeon.update dungeonMsg app.dungeon
+            in
+            ( { app | dungeon = dungeon }, Cmd.map DungeonMsg cmd )
 
         None ->
             ( app, Cmd.none )
@@ -62,7 +70,7 @@ view app =
                         , justifyContent center
                         ]
                     ]
-                , Html.Styled.map (\msg -> DungeonMsg msg) (Dungeon.view app.dungeon)
+                , Html.Styled.map DungeonMsg (Dungeon.view app.dungeon)
                 ]
             )
         ]

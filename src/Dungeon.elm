@@ -1,53 +1,77 @@
 module Dungeon exposing (Dungeon, Msg(..), init, update, view)
 
 import Css exposing (..)
+import Floor exposing (Floor)
 import Hero exposing (Hero)
 import Html.Styled exposing (Html, styled, table, td, tr)
 import List exposing (map, range, repeat)
 import Position exposing (Position)
+import Random
 
 
 type alias Dungeon =
-    { width : Int
-    , height : Int
+    { floor : Maybe Floor
+    , generatingFloor : Bool
     , hero : Hero
     }
 
 
-init : Dungeon
+init : ( Dungeon, Cmd Msg )
 init =
-    { width = 32, height = 32, hero = Hero.init (Position.init 16 16) }
+    ( { floor = Nothing
+      , generatingFloor = True
+      , hero = Hero.init (Position.init 16 16)
+      }
+    , Random.generate GenerateFloor Floor.generate
+    )
 
 
 type Msg
     = HeroMsg Hero.Msg
+    | GenerateFloor Floor
 
 
-update : Msg -> Dungeon -> Dungeon
+update : Msg -> Dungeon -> ( Dungeon, Cmd Msg )
 update msg dungeon =
     case msg of
         HeroMsg heroMsg ->
-            { dungeon
-                | hero =
-                    let
-                        newHero =
-                            Hero.update heroMsg dungeon.hero
-                    in
-                    if isValidPosition dungeon newHero.position then
-                        newHero
+            case dungeon.floor of
+                Nothing ->
+                    if dungeon.generatingFloor then
+                        ( dungeon, Cmd.none )
 
                     else
-                        dungeon.hero
-            }
+                        ( { dungeon | generatingFloor = True }
+                        , Random.generate GenerateFloor Floor.generate
+                        )
 
+                Just floor ->
+                    ( { dungeon
+                        | hero =
+                            let
+                                newHero =
+                                    Hero.update heroMsg dungeon.hero
+                            in
+                            if Floor.inside floor newHero.position then
+                                newHero
 
-isValidPosition : Dungeon -> Position -> Bool
-isValidPosition dungeon { x, y } =
-    1 <= x && x <= dungeon.width && 1 <= y && y <= dungeon.height
+                            else
+                                dungeon.hero
+                      }
+                    , Cmd.none
+                    )
+
+        GenerateFloor newFloor ->
+            ( { dungeon
+                | floor = Just newFloor
+                , generatingFloor = False
+              }
+            , Cmd.none
+            )
 
 
 view : Dungeon -> Html Msg
-view dungeon =
+view { floor, hero } =
     styled table
         [ borderSpacing (px 0) ]
         []
@@ -62,18 +86,15 @@ view dungeon =
                                 td
                                 [ display inlineBlock, width (em 1.5), height (em 1.5) ]
                                 []
-                                (if dungeon.hero.position == Position.init x y then
-                                    [ Html.Styled.map
-                                        (\msg -> HeroMsg msg)
-                                        (Hero.view dungeon.hero)
-                                    ]
+                                (if hero.position == Position.init x y then
+                                    [ Html.Styled.map HeroMsg (Hero.view hero) ]
 
                                  else
                                     []
                                 )
                         )
-                        (range 1 dungeon.width)
+                        (range 1 Floor.width)
                     )
             )
-            (range 1 dungeon.height)
+            (range 1 Floor.height)
         )

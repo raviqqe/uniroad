@@ -26,16 +26,36 @@ update : Msg -> Hero -> Hero
 update msg hero =
     case msg of
         MoveLeft ->
-            { hero | position = Position.init (hero.position.x - 1) hero.position.y }
+            { hero
+                | position =
+                    Position.init
+                        (Position.x hero.position - 1)
+                        (Position.y hero.position)
+            }
 
         MoveRight ->
-            { hero | position = Position.init (hero.position.x + 1) hero.position.y }
+            { hero
+                | position =
+                    Position.init
+                        (Position.x hero.position + 1)
+                        (Position.y hero.position)
+            }
 
         MoveUp ->
-            { hero | position = Position.init hero.position.x (hero.position.y - 1) }
+            { hero
+                | position =
+                    Position.init
+                        (Position.x hero.position)
+                        (Position.y hero.position - 1)
+            }
 
         MoveDown ->
-            { hero | position = Position.init hero.position.x (hero.position.y + 1) }
+            { hero
+                | position =
+                    Position.init
+                        (Position.x hero.position)
+                        (Position.y hero.position + 1)
+            }
 
 
 view : Hero -> Html Msg
