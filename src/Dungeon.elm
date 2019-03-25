@@ -7,20 +7,23 @@ import Html.Styled exposing (Html, div, styled, text)
 import List exposing (map, range)
 import Position
 import Random exposing (Generator)
+import Stairs exposing (Stairs)
 
 
 type alias Dungeon =
     { floor : Maybe Floor
-    , generatingFloor : Bool
-    , hero : Hero
+    , generating : Bool
+    , hero : Maybe Hero
+    , stairs : Maybe Stairs
     }
 
 
 init : ( Dungeon, Cmd Msg )
 init =
     ( { floor = Nothing
-      , generatingFloor = True
-      , hero = Hero.init (Position.init 16 16)
+      , generating = True
+      , hero = Nothing
+      , stairs = Nothing
       }
     , Random.generate Renew generate
     )
@@ -28,65 +31,77 @@ init =
 
 type Msg
     = HeroMsg Hero.Msg
-    | Renew (Result String ( Floor, Hero ))
+    | Renew (Result String ( Floor, Hero, Stairs ))
+    | None
 
 
 update : Msg -> Dungeon -> ( Dungeon, Cmd Msg )
 update msg dungeon =
     case msg of
         HeroMsg heroMsg ->
-            case dungeon.floor of
-                Nothing ->
-                    if dungeon.generatingFloor then
+            case ( dungeon.floor, dungeon.hero ) of
+                ( Just floor, Just hero ) ->
+                    ( { dungeon
+                        | hero =
+                            Just
+                                (let
+                                    newHero =
+                                        Hero.update heroMsg hero
+                                 in
+                                 if Floor.inside floor newHero.position then
+                                    newHero
+
+                                 else
+                                    hero
+                                )
+                      }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    if dungeon.generating then
                         ( dungeon, Cmd.none )
 
                     else
-                        ( { dungeon | generatingFloor = True }
+                        ( { dungeon | generating = True }
                         , Random.generate Renew generate
                         )
 
-                Just floor ->
-                    ( { dungeon
-                        | hero =
-                            let
-                                newHero =
-                                    Hero.update heroMsg dungeon.hero
-                            in
-                            if Floor.inside floor newHero.position then
-                                newHero
-
-                            else
-                                dungeon.hero
-                      }
-                    , Cmd.none
-                    )
-
         Renew result ->
             case result of
-                Ok ( floor, hero ) ->
+                Ok ( floor, hero, stairs ) ->
                     ( { dungeon
                         | floor = Just floor
-                        , generatingFloor = False
-                        , hero = hero
+                        , generating = False
+                        , hero = Just hero
+                        , stairs = Just stairs
                       }
                     , Cmd.none
                     )
 
                 Err message ->
-                    Debug.todo message
+                    -- unreachable
+                    ( dungeon, Cmd.none )
+
+        None ->
+            ( dungeon, Cmd.none )
 
 
-generate : Generator (Result String ( Floor, Hero ))
+generate : Generator (Result String ( Floor, Hero, Stairs ))
 generate =
     Random.andThen
         (\floor ->
-            case Floor.generatePosition floor of
-                Ok generator ->
-                    Random.map
-                        (\position -> Ok ( floor, Hero.init position ))
-                        generator
+            case ( Floor.generatePosition floor, Stairs.generate floor ) of
+                ( Ok randomPosition, Ok randomStairs ) ->
+                    Random.map2
+                        (\position stairs -> Ok ( floor, Hero.init position, stairs ))
+                        randomPosition
+                        randomStairs
 
-                Err message ->
+                ( Err message, _ ) ->
+                    Random.constant (Err message)
+
+                ( _, Err message ) ->
                     Random.constant (Err message)
         )
         Floor.generate
@@ -94,12 +109,8 @@ generate =
 
 view : Dungeon -> Html Msg
 view dungeon =
-    let
-        hero =
-            dungeon.hero
-    in
-    case dungeon.floor of
-        Just floor ->
+    case ( dungeon.floor, dungeon.hero, dungeon.stairs ) of
+        ( Just floor, Just hero, Just stairs ) ->
             styled div
                 [ displayFlex
                 , flexDirection column
@@ -135,6 +146,9 @@ view dungeon =
                                         (if hero.position == Position.init x y then
                                             [ Html.Styled.map HeroMsg (Hero.view hero) ]
 
+                                         else if stairs.position == Position.init x y then
+                                            [ Html.Styled.map (\_ -> None) (Stairs.view stairs) ]
+
                                          else
                                             []
                                         )
@@ -145,5 +159,5 @@ view dungeon =
                     (range 1 Floor.height)
                 )
 
-        Nothing ->
+        _ ->
             text "loading"
