@@ -40,21 +40,25 @@ update msg dungeon =
         HeroMsg heroMsg ->
             case dungeon of
                 Just state ->
-                    ( Just
-                        { state
-                            | hero =
-                                let
-                                    newHero =
-                                        Hero.update heroMsg state.hero
-                                in
-                                if Floor.inside state.floor newHero.position then
-                                    newHero
+                    let
+                        newHero =
+                            Hero.update heroMsg state.hero
+                    in
+                    if newHero.position == state.stairs.position then
+                        ( Nothing, Random.generate Renew generate )
 
-                                else
-                                    state.hero
-                        }
-                    , Cmd.none
-                    )
+                    else
+                        ( Just
+                            { state
+                                | hero =
+                                    if Floor.inside state.floor newHero.position then
+                                        newHero
+
+                                    else
+                                        state.hero
+                            }
+                        , Cmd.none
+                        )
 
                 Nothing ->
                     ( Nothing, Cmd.none )
