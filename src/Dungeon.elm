@@ -112,6 +112,7 @@ view dungeon =
                 [ displayFlex
                 , flexDirection column
                 , flexWrap noWrap
+                , fontSize (vmin (100 / toFloat floor.size))
                 ]
                 []
                 (map
@@ -129,8 +130,8 @@ view dungeon =
                                         [ displayFlex
                                         , justifyContent center
                                         , alignItems center
-                                        , width (em 1.5)
-                                        , height (em 1.5)
+                                        , width (em 1)
+                                        , height (em 1)
                                         , (backgroundColor << hex)
                                             (if Floor.inside floor (Position.init x y) then
                                                 "#000000"
@@ -150,10 +151,10 @@ view dungeon =
                                             []
                                         )
                                 )
-                                (range 1 Floor.width)
+                                (range 1 floor.size)
                             )
                     )
-                    (range 1 Floor.height)
+                    (range 1 floor.size)
                 )
 
         Nothing ->

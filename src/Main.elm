@@ -68,7 +68,6 @@ view app =
                         , margin zero
                         , padding zero
                         , fontFamilies [ "Ubuntu Mono", "monospace" ]
-                        , fontSize (vh (100.0 / 48.0))
                         , displayFlex
                         , alignItems center
                         , justifyContent center

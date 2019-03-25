@@ -1,4 +1,4 @@
-module Floor exposing (Floor, generate, generatePosition, height, inside, width)
+module Floor exposing (Floor, generate, generatePosition, inside)
 
 import Maybe
 import Position exposing (Position)
@@ -9,14 +9,19 @@ import Set exposing (Set)
 
 
 type alias Floor =
-    { validPositions : Set Position
+    { size : Int
+    , validPositions : Set Position
     }
 
 
 generate : Generator Floor
 generate =
+    let
+        size =
+            32
+    in
     Random.map
-        (\room -> { validPositions = Room.toPositions room })
+        (\room -> { size = size, validPositions = Room.toPositions room })
         (Room.generate ( 2, 31 ) ( 2, 31 ))
 
 
@@ -34,13 +39,3 @@ generatePosition floor =
     Result.fromMaybe
         "no valid positions in a floor"
         (Maybe.map2 Random.uniform (List.head positions) (List.tail positions))
-
-
-width : Int
-width =
-    32
-
-
-height : Int
-height =
-    32
