@@ -67,10 +67,11 @@ view app =
                         , height (vh 100)
                         , margin zero
                         , padding zero
-                        , fontFamilies [ "Ubuntu Mono", "monospace" ]
                         , displayFlex
                         , alignItems center
                         , justifyContent center
+                        , fontFamilies [ "Ubuntu Mono", "monospace" ]
+                        , backgroundColor (hex "#000000")
                         ]
                     ]
                 , Html.Styled.map DungeonMsg (Dungeon.view app.dungeon)
