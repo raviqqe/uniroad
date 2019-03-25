@@ -6,7 +6,7 @@ import Css exposing (..)
 import Css.Global exposing (..)
 import Dungeon exposing (Dungeon)
 import Hero
-import Html.Styled exposing (div, toUnstyled)
+import Html.Styled exposing (div, node, text, toUnstyled)
 import Json.Decode exposing (Decoder)
 
 
@@ -58,13 +58,17 @@ view app =
         [ toUnstyled
             (div
                 []
-                [ global
+                [ node "style"
+                    []
+                    [ text "@import url('https://fonts.googleapis.com/css?family=Ubuntu+Mono');" ]
+                , global
                     [ selector "body"
                         [ width (vw 100)
                         , height (vh 100)
                         , margin zero
                         , padding zero
-                        , fontSize (px 8)
+                        , fontFamilies [ "Ubuntu Mono", "monospace" ]
+                        , fontSize (vh (100.0 / 48.0))
                         , displayFlex
                         , alignItems center
                         , justifyContent center
