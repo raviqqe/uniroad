@@ -11,27 +11,26 @@ import Stairs exposing (Stairs)
 
 
 type alias Dungeon =
-    { floor : Maybe Floor
-    , generating : Bool
-    , hero : Maybe Hero
-    , stairs : Maybe Stairs
+    Maybe State
+
+
+type alias State =
+    { floor : Floor
+    , hero : Hero
+    , stairs : Stairs
     }
 
 
 init : ( Dungeon, Cmd Msg )
 init =
-    ( { floor = Nothing
-      , generating = True
-      , hero = Nothing
-      , stairs = Nothing
-      }
+    ( Nothing
     , Random.generate Renew generate
     )
 
 
 type Msg
     = HeroMsg Hero.Msg
-    | Renew (Result String ( Floor, Hero, Stairs ))
+    | Renew (Result String State)
     | None
 
 
@@ -39,43 +38,31 @@ update : Msg -> Dungeon -> ( Dungeon, Cmd Msg )
 update msg dungeon =
     case msg of
         HeroMsg heroMsg ->
-            case ( dungeon.floor, dungeon.hero ) of
-                ( Just floor, Just hero ) ->
-                    ( { dungeon
-                        | hero =
-                            Just
-                                (let
+            case dungeon of
+                Just state ->
+                    ( Just
+                        { state
+                            | hero =
+                                let
                                     newHero =
-                                        Hero.update heroMsg hero
-                                 in
-                                 if Floor.inside floor newHero.position then
+                                        Hero.update heroMsg state.hero
+                                in
+                                if Floor.inside state.floor newHero.position then
                                     newHero
 
-                                 else
-                                    hero
-                                )
-                      }
+                                else
+                                    state.hero
+                        }
                     , Cmd.none
                     )
 
-                _ ->
-                    if dungeon.generating then
-                        ( dungeon, Cmd.none )
-
-                    else
-                        ( { dungeon | generating = True }
-                        , Random.generate Renew generate
-                        )
+                Nothing ->
+                    ( Nothing, Cmd.none )
 
         Renew result ->
             case result of
-                Ok ( floor, hero, stairs ) ->
-                    ( { dungeon
-                        | floor = Just floor
-                        , generating = False
-                        , hero = Just hero
-                        , stairs = Just stairs
-                      }
+                Ok state ->
+                    ( Just state
                     , Cmd.none
                     )
 
@@ -87,14 +74,20 @@ update msg dungeon =
             ( dungeon, Cmd.none )
 
 
-generate : Generator (Result String ( Floor, Hero, Stairs ))
+generate : Generator (Result String State)
 generate =
     Random.andThen
         (\floor ->
             case ( Floor.generatePosition floor, Stairs.generate floor ) of
                 ( Ok randomPosition, Ok randomStairs ) ->
                     Random.map2
-                        (\position stairs -> Ok ( floor, Hero.init position, stairs ))
+                        (\position stairs ->
+                            Ok
+                                { floor = floor
+                                , hero = Hero.init position
+                                , stairs = stairs
+                                }
+                        )
                         randomPosition
                         randomStairs
 
@@ -109,8 +102,8 @@ generate =
 
 view : Dungeon -> Html Msg
 view dungeon =
-    case ( dungeon.floor, dungeon.hero, dungeon.stairs ) of
-        ( Just floor, Just hero, Just stairs ) ->
+    case dungeon of
+        Just { floor, hero, stairs } ->
             styled div
                 [ displayFlex
                 , flexDirection column
@@ -159,5 +152,5 @@ view dungeon =
                     (range 1 Floor.height)
                 )
 
-        _ ->
+        Nothing ->
             text "loading"
