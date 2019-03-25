@@ -125,22 +125,8 @@ view dungeon =
                             []
                             (map
                                 (\x ->
-                                    styled
-                                        div
-                                        [ displayFlex
-                                        , justifyContent center
-                                        , alignItems center
-                                        , width (em 1)
-                                        , height (em 1)
-                                        , (backgroundColor << hex)
-                                            (if Floor.inside floor (Position.init x y) then
-                                                "#000000"
-
-                                             else
-                                                "#444444"
-                                            )
-                                        ]
-                                        []
+                                    Floor.view floor
+                                        (Position.init x y)
                                         (if hero.position == Position.init x y then
                                             [ Html.Styled.map HeroMsg (Hero.view hero) ]
 

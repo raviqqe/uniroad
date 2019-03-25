@@ -71,6 +71,7 @@ view app =
                         , alignItems center
                         , justifyContent center
                         , fontFamilies [ "Ubuntu Mono", "monospace" ]
+                        , color (hex "#ffffff")
                         , backgroundColor (hex "#000000")
                         ]
                     ]

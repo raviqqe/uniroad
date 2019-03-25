@@ -1,5 +1,6 @@
-module Position exposing (Position, generate, init, x, y)
+module Position exposing (Position, generate, init, move, x, y)
 
+import Direction exposing (..)
 import Random
 
 
@@ -28,3 +29,19 @@ x =
 y : Position -> Int
 y =
     Tuple.second
+
+
+move : Position -> Direction -> Position
+move ( oldX, oldY ) direction =
+    case direction of
+        Left ->
+            ( oldX - 1, oldY )
+
+        Right ->
+            ( oldX + 1, oldY )
+
+        Up ->
+            ( oldX, oldY - 1 )
+
+        Down ->
+            ( oldX, oldY + 1 )
