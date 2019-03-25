@@ -53,7 +53,7 @@ update msg app =
 
 view : App -> Document Msg
 view app =
-    { title = "Uniroad"
+    { title = "uniroad"
     , body =
         [ toUnstyled
             (div
