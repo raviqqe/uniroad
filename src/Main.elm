@@ -4,7 +4,8 @@ import Browser exposing (Document)
 import Browser.Events exposing (onKeyDown)
 import Css exposing (..)
 import Css.Global exposing (..)
-import Dungeon exposing (Dungeon)
+import Direction exposing (..)
+import Dungeon exposing (Dungeon, Msg(..))
 import Hero
 import Html.Styled exposing (div, node, text, toUnstyled)
 import Json.Decode exposing (Decoder)
@@ -87,18 +88,34 @@ keyDecoder =
     let
         toMsg : String -> Msg
         toMsg key =
+            let
+                move =
+                    Hero.Move >> HeroMsg >> DungeonMsg
+            in
             case key of
                 "h" ->
-                    DungeonMsg (Dungeon.HeroMsg Hero.MoveLeft)
+                    move Left
 
                 "l" ->
-                    DungeonMsg (Dungeon.HeroMsg Hero.MoveRight)
+                    move Right
 
                 "k" ->
-                    DungeonMsg (Dungeon.HeroMsg Hero.MoveUp)
+                    move Up
 
                 "j" ->
-                    DungeonMsg (Dungeon.HeroMsg Hero.MoveDown)
+                    move Down
+
+                "u" ->
+                    move LeftUp
+
+                "i" ->
+                    move RightUp
+
+                "n" ->
+                    move LeftDown
+
+                "m" ->
+                    move RightDown
 
                 _ ->
                     None

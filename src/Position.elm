@@ -45,3 +45,15 @@ move ( oldX, oldY ) direction =
 
         Down ->
             ( oldX, oldY + 1 )
+
+        LeftUp ->
+            ( oldX - 1, oldY - 1 )
+
+        LeftDown ->
+            ( oldX - 1, oldY + 1 )
+
+        RightUp ->
+            ( oldX + 1, oldY - 1 )
+
+        RightDown ->
+            ( oldX + 1, oldY + 1 )

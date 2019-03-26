@@ -60,38 +60,31 @@ view floor position children =
 
          else
             let
-                wallLeft =
-                    isNextWall floor position Left
+                isWall =
+                    isNextWall floor position
 
-                wallRight =
-                    isNextWall floor position Right
-
-                wallUp =
-                    isNextWall floor position Up
-
-                wallDown =
-                    isNextWall floor position Down
+                isFloor =
+                    not << isWall
             in
-            if wallLeft && wallUp && isDiagonalFloor floor position Left Up then
+            if isWall Left && isWall Up && isFloor LeftUp then
                 [ text "'" ]
 
-            else if wallUp && wallRight && isDiagonalFloor floor position Up Right then
-                [ text "`" ]
-
-            else if wallRight && wallDown && isDiagonalFloor floor position Right Down then
-                [ text "," ]
-
-            else if wallDown && wallLeft && isDiagonalFloor floor position Down Left then
+            else if isWall Left && isWall Down && isFloor LeftDown then
                 [ text "." ]
 
-            else if wallLeft && wallRight && xor wallUp wallDown then
+            else if isWall Right && isWall Up && isFloor RightUp then
+                [ text "`" ]
+
+            else if isWall Right && isWall Down && isFloor RightDown then
+                [ text "," ]
+
+            else if isWall Left && isWall Right && xor (isWall Up) (isWall Down) then
                 [ text "-" ]
 
-            else if wallUp && wallDown && xor wallRight wallLeft then
+            else if isWall Up && isWall Down && xor (isWall Right) (isWall Left) then
                 [ text "|" ]
 
             else
-                -- unreachable
                 []
         )
 
@@ -99,8 +92,3 @@ view floor position children =
 isNextWall : Floor -> Position -> Direction -> Bool
 isNextWall floor position direction =
     not (inside floor (Position.move position direction))
-
-
-isDiagonalFloor : Floor -> Position -> Direction -> Direction -> Bool
-isDiagonalFloor floor position direction1 direction2 =
-    inside floor (Position.move (Position.move position direction1) direction2)

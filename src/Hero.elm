@@ -1,6 +1,7 @@
 module Hero exposing (Hero, Msg(..), init, update, view)
 
 import Css exposing (..)
+import Direction exposing (Direction)
 import Html.Styled exposing (Html, div, styled, text)
 import Position exposing (Position)
 
@@ -15,45 +16,15 @@ init position =
 
 
 type Msg
-    = MoveLeft
-    | MoveRight
-    | MoveUp
-    | MoveDown
+    = Move Direction
 
 
 update : Msg -> Hero -> Hero
 update msg hero =
     case msg of
-        MoveLeft ->
+        Move direction ->
             { hero
-                | position =
-                    Position.init
-                        (Position.x hero.position - 1)
-                        (Position.y hero.position)
-            }
-
-        MoveRight ->
-            { hero
-                | position =
-                    Position.init
-                        (Position.x hero.position + 1)
-                        (Position.y hero.position)
-            }
-
-        MoveUp ->
-            { hero
-                | position =
-                    Position.init
-                        (Position.x hero.position)
-                        (Position.y hero.position - 1)
-            }
-
-        MoveDown ->
-            { hero
-                | position =
-                    Position.init
-                        (Position.x hero.position)
-                        (Position.y hero.position + 1)
+                | position = Position.move hero.position direction
             }
 
 

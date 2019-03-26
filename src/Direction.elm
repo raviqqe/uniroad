@@ -6,3 +6,7 @@ type Direction
     | Right
     | Up
     | Down
+    | LeftUp
+    | LeftDown
+    | RightUp
+    | RightDown
