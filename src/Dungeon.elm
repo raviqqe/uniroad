@@ -18,13 +18,14 @@ type alias State =
     { floor : Floor
     , hero : Hero
     , stairs : Stairs
+    , level : Int
     }
 
 
 init : ( Dungeon, Cmd Msg )
 init =
     ( Nothing
-    , Random.generate Renew generate
+    , Random.generate Renew (generate Nothing)
     )
 
 
@@ -45,7 +46,7 @@ update msg dungeon =
                             Hero.update heroMsg state.hero
                     in
                     if newHero.position == state.stairs.position then
-                        ( Nothing, Random.generate Renew generate )
+                        ( Nothing, Random.generate Renew (generate dungeon) )
 
                     else
                         ( Just
@@ -78,8 +79,8 @@ update msg dungeon =
             ( dungeon, Cmd.none )
 
 
-generate : Generator (Result String State)
-generate =
+generate : Dungeon -> Generator (Result String State)
+generate dungeon =
     Random.andThen
         (\floor ->
             case ( Floor.generatePosition floor, Stairs.generate floor ) of
@@ -90,6 +91,10 @@ generate =
                                 { floor = floor
                                 , hero = Hero.init position
                                 , stairs = stairs
+                                , level =
+                                    Maybe.withDefault
+                                        1
+                                        (Maybe.map (.level >> (\level -> level + 1)) dungeon)
                                 }
                         )
                         randomPosition
@@ -107,7 +112,7 @@ generate =
 view : Dungeon -> Html Msg
 view dungeon =
     case dungeon of
-        Just { floor, hero, stairs } ->
+        Just { floor, hero, stairs, level } ->
             styled div
                 [ displayFlex
                 , flexDirection column
@@ -115,32 +120,48 @@ view dungeon =
                 , fontSize (vmin (100 / toFloat floor.size))
                 ]
                 []
-                (map
-                    (\y ->
-                        styled div
-                            [ displayFlex
-                            , flexDirection row
-                            , flexWrap noWrap
-                            ]
-                            []
-                            (map
-                                (\x ->
-                                    Floor.view floor
-                                        (Position.init x y)
-                                        (if hero.position == Position.init x y then
-                                            [ Html.Styled.map HeroMsg (Hero.view hero) ]
+                ([ styled
+                    div
+                    [ position absolute
+                    , left (px 0)
+                    , top (px 0)
+                    , width (vw 100)
+                    , height (vh 100)
+                    , displayFlex
+                    , justifyContent center
+                    , alignItems center
+                    , color (hex "#ffffff11")
+                    , fontSize (vh 100)
+                    ]
+                    []
+                    [ text (String.fromInt level) ]
+                 ]
+                    ++ map
+                        (\y ->
+                            styled div
+                                [ displayFlex
+                                , flexDirection row
+                                , flexWrap noWrap
+                                ]
+                                []
+                                (map
+                                    (\x ->
+                                        Floor.view floor
+                                            (Position.init x y)
+                                            (if hero.position == Position.init x y then
+                                                [ Html.Styled.map HeroMsg (Hero.view hero) ]
 
-                                         else if stairs.position == Position.init x y then
-                                            [ Html.Styled.map (\_ -> None) (Stairs.view stairs) ]
+                                             else if stairs.position == Position.init x y then
+                                                [ Html.Styled.map (\_ -> None) (Stairs.view stairs) ]
 
-                                         else
-                                            []
-                                        )
+                                             else
+                                                []
+                                            )
+                                    )
+                                    (range 1 floor.size)
                                 )
-                                (range 1 floor.size)
-                            )
-                    )
-                    (range 1 floor.size)
+                        )
+                        (range 1 floor.size)
                 )
 
         Nothing ->
