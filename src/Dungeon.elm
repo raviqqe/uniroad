@@ -131,7 +131,7 @@ view dungeon =
                     , justifyContent center
                     , alignItems center
                     , color (hex "#ffffff11")
-                    , fontSize (vh 100)
+                    , fontSize (vmin 100)
                     ]
                     []
                     [ text (String.fromInt level) ]
