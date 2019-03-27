@@ -10,21 +10,31 @@ type alias Room =
     { leftTop : Position, rightBottom : Position }
 
 
-generate : ( Int, Int ) -> ( Int, Int ) -> Generator Room
-generate ( minX, maxX ) ( minY, maxY ) =
-    Position.generate ( minX, maxX - minWidth ) ( minY, maxY - minHeight )
-        |> Random.andThen
-            (\position ->
-                Random.pair
-                    (Random.constant position)
-                    (let
-                        ( x, y ) =
-                            position
-                     in
-                     Position.generate ( x + minWidth, maxX ) ( y + minHeight, maxY )
-                    )
-            )
-        |> Random.map (\( p1, p2 ) -> { leftTop = p1, rightBottom = p2 })
+init : Position -> Position -> Room
+init leftTop rightBottom =
+    { leftTop = leftTop, rightBottom = rightBottom }
+
+
+generate : Position -> Position -> Maybe (Generator Room)
+generate ( minX, minY ) ( maxX, maxY ) =
+    if maxX - minX < size + 1 || maxY - minY < size + 1 then
+        Nothing
+
+    else
+        Position.generate ( minX + 1, maxX - 1 - size ) ( minY + 1, maxY - 1 - size )
+            |> Random.andThen
+                (\position ->
+                    Random.pair
+                        (Random.constant position)
+                        (let
+                            ( x, y ) =
+                                position
+                         in
+                         Position.generate ( x + size, maxX - 1 ) ( y + size, maxY - 1 )
+                        )
+                )
+            |> Random.map (\( leftTop, rightBottom ) -> init leftTop rightBottom)
+            |> Just
 
 
 toPositions : Room -> Set ( Int, Int )
@@ -39,11 +49,6 @@ toPositions room =
         |> Set.fromList
 
 
-minWidth : Int
-minWidth =
-    4
-
-
-minHeight : Int
-minHeight =
+size : Int
+size =
     4

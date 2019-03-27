@@ -23,9 +23,15 @@ generate =
         size =
             32
     in
-    Random.map
-        (\room -> { size = size, validPositions = Room.toPositions room })
-        (Room.generate ( 2, 31 ) ( 2, 31 ))
+    case Room.generate ( 1, 1 ) ( size, size ) of
+        Just roomGenerator ->
+            Random.map
+                (\room -> { size = size, validPositions = Room.toPositions room })
+                roomGenerator
+
+        Nothing ->
+            -- unreachable
+            Random.constant { size = 0, validPositions = Set.empty }
 
 
 inside : Floor -> Position -> Bool
