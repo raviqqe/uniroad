@@ -1,4 +1,4 @@
-module Room exposing (Room, generate, toPositions)
+module Room exposing (Room, generate, minimumSize, toPositions)
 
 import List
 import Position exposing (Position)
@@ -17,18 +17,18 @@ init leftTop rightBottom =
 
 generate : Position -> Position -> Maybe (Generator Room)
 generate ( minX, minY ) ( maxX, maxY ) =
-    if maxX - minX < size + 1 || maxY - minY < size + 1 then
+    if maxX - minX < minimumSize + 1 || maxY - minY < minimumSize + 1 then
         Nothing
 
     else
-        Position.generate ( minX + 1, maxX - 1 - size ) ( minY + 1, maxY - 1 - size )
+        Position.generate ( minX + 1, maxX - 1 - minimumSize ) ( minY + 1, maxY - 1 - minimumSize )
             |> Random.andThen
                 (\leftTop ->
                     let
                         ( x, y ) =
                             leftTop
                     in
-                    Position.generate ( x + size, maxX - 1 ) ( y + size, maxY - 1 )
+                    Position.generate ( x + minimumSize, maxX - 1 ) ( y + minimumSize, maxY - 1 )
                         |> Random.map (\rightBottom -> init leftTop rightBottom)
                 )
             |> Just
@@ -46,6 +46,6 @@ toPositions room =
         |> Set.fromList
 
 
-size : Int
-size =
+minimumSize : Int
+minimumSize =
     4
