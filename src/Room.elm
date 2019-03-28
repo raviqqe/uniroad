@@ -23,17 +23,14 @@ generate ( minX, minY ) ( maxX, maxY ) =
     else
         Position.generate ( minX + 1, maxX - 1 - size ) ( minY + 1, maxY - 1 - size )
             |> Random.andThen
-                (\position ->
-                    Random.pair
-                        (Random.constant position)
-                        (let
-                            ( x, y ) =
-                                position
-                         in
-                         Position.generate ( x + size, maxX - 1 ) ( y + size, maxY - 1 )
-                        )
+                (\leftTop ->
+                    let
+                        ( x, y ) =
+                            leftTop
+                    in
+                    Position.generate ( x + size, maxX - 1 ) ( y + size, maxY - 1 )
+                        |> Random.map (\rightBottom -> init leftTop rightBottom)
                 )
-            |> Random.map (\( leftTop, rightBottom ) -> init leftTop rightBottom)
             |> Just
 
 
