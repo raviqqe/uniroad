@@ -14,7 +14,7 @@ import Set exposing (Set)
 
 type alias Floor =
     { size : Int
-    , validPositions : Set Position
+    , positions : Set Position
     }
 
 
@@ -121,37 +121,25 @@ generate =
         |> Random.andThen (\split -> split (Division.init ( 1, 1 ) ( size, size )))
         |> Random.map (List.map (\division -> Room.generate division.leftTop division.rightBottom))
         |> Random.andThen
-            (\list ->
-                List.map
-                    (\maybe ->
-                        case maybe of
-                            Nothing ->
-                                []
-
-                            Just roomGenerator ->
-                                [ roomGenerator ]
-                    )
-                    list
-                    |> List.concat
-                    |> List.foldr
-                        (Random.map2
-                            (\room set -> Set.union (Room.toPositions room) set)
-                        )
-                        (Random.constant Set.empty)
+            (List.map (Maybe.map List.singleton >> Maybe.withDefault [])
+                >> List.concat
+                >> List.foldr
+                    (Random.map2 (\room set -> Set.union (Room.toPositions room) set))
+                    (Random.constant Set.empty)
             )
-        |> Random.map (\positions -> { size = size, validPositions = positions })
+        |> Random.map (\positions -> { size = size, positions = positions })
 
 
 inside : Floor -> Position -> Bool
 inside floor position =
-    Set.member position floor.validPositions
+    Set.member position floor.positions
 
 
 generatePosition : Floor -> Result String (Generator Position)
 generatePosition floor =
     let
         positions =
-            Set.toList floor.validPositions
+            Set.toList floor.positions
     in
     Result.fromMaybe
         "no valid positions in a floor"
