@@ -25,71 +25,100 @@ generate =
         size =
             32
 
+        splitProbability : Float
+        splitProbability =
+            0.2
+
         splitDivisionHorizontally : Division -> Generator (List Division)
         splitDivisionHorizontally division =
-            let
-                ( left, top ) =
-                    division.leftTop
+            Random.float 0 1
+                |> Random.andThen
+                    (\probability ->
+                        if probability < splitProbability then
+                            Random.constant [ division ]
 
-                ( right, bottom ) =
-                    division.rightBottom
+                        else
+                            let
+                                ( left, top ) =
+                                    division.leftTop
 
-                minSeparator =
-                    left + 2 + Room.minimumSize
+                                ( right, bottom ) =
+                                    division.rightBottom
 
-                maxSeparator =
-                    right - 2 - Room.minimumSize
-            in
-            if minSeparator > maxSeparator then
-                Random.constant [ division ]
+                                minSeparator =
+                                    left + 2 + Room.minimumSize
 
-            else
-                Random.int minSeparator maxSeparator
-                    |> Random.andThen
-                        (\separator ->
-                            Random.map2
-                                (++)
-                                (splitDivisionVertically
-                                    (Division.init division.leftTop ( separator - 1, bottom ))
-                                )
-                                (splitDivisionVertically
-                                    (Division.init ( separator + 1, top ) division.rightBottom)
-                                )
-                        )
+                                maxSeparator =
+                                    right - 2 - Room.minimumSize
+                            in
+                            if minSeparator > maxSeparator then
+                                Random.constant [ division ]
+
+                            else
+                                Random.int minSeparator maxSeparator
+                                    |> Random.andThen
+                                        (\separator ->
+                                            Random.map2
+                                                (++)
+                                                (splitDivisionVertically
+                                                    (Division.init division.leftTop ( separator - 1, bottom ))
+                                                )
+                                                (splitDivisionVertically
+                                                    (Division.init ( separator + 1, top ) division.rightBottom)
+                                                )
+                                        )
+                    )
 
         splitDivisionVertically : Division -> Generator (List Division)
         splitDivisionVertically division =
-            let
-                ( left, top ) =
-                    division.leftTop
+            Random.float 0 1
+                |> Random.andThen
+                    (\probability ->
+                        if probability < splitProbability then
+                            Random.constant [ division ]
 
-                ( right, bottom ) =
-                    division.rightBottom
+                        else
+                            let
+                                ( left, top ) =
+                                    division.leftTop
 
-                minSeparator =
-                    top + 2 + Room.minimumSize
+                                ( right, bottom ) =
+                                    division.rightBottom
 
-                maxSeparator =
-                    bottom - 2 - Room.minimumSize
-            in
-            if minSeparator > maxSeparator then
-                Random.constant [ division ]
+                                minSeparator =
+                                    top + 2 + Room.minimumSize
 
-            else
-                Random.int minSeparator maxSeparator
-                    |> Random.andThen
-                        (\separator ->
-                            Random.map2
-                                (++)
-                                (splitDivisionHorizontally
-                                    (Division.init division.leftTop ( right, separator - 1 ))
-                                )
-                                (splitDivisionHorizontally
-                                    (Division.init ( left, separator + 1 ) division.rightBottom)
-                                )
-                        )
+                                maxSeparator =
+                                    bottom - 2 - Room.minimumSize
+                            in
+                            if minSeparator > maxSeparator then
+                                Random.constant [ division ]
+
+                            else
+                                Random.int minSeparator maxSeparator
+                                    |> Random.andThen
+                                        (\separator ->
+                                            Random.map2
+                                                (++)
+                                                (splitDivisionHorizontally
+                                                    (Division.init division.leftTop ( right, separator - 1 ))
+                                                )
+                                                (splitDivisionHorizontally
+                                                    (Division.init ( left, separator + 1 ) division.rightBottom)
+                                                )
+                                        )
+                    )
     in
-    splitDivisionVertically (Division.init ( 1, 1 ) ( size, size ))
+    Random.int 0 1
+        |> Random.map
+            (\int ->
+                if int == 0 then
+                    splitDivisionHorizontally
+
+                else
+                    splitDivisionVertically
+            )
+        |> Random.andThen (\split -> split (Division.init ( 1, 1 ) ( size, size )))
         |> Random.map (List.map (\division -> Room.generate division.leftTop division.rightBottom))
         |> Random.andThen
             (\list ->
