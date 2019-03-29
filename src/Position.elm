@@ -1,7 +1,7 @@
 module Position exposing (Position, generate, init, move, x, y)
 
 import Direction exposing (..)
-import Random
+import Random exposing (Generator)
 
 
 type alias Position =
@@ -13,7 +13,7 @@ init newX newY =
     ( newX, newY )
 
 
-generate : ( Int, Int ) -> ( Int, Int ) -> Random.Generator Position
+generate : ( Int, Int ) -> ( Int, Int ) -> Generator Position
 generate ( minX, maxX ) ( minY, maxY ) =
     Random.map2
         (\newX newY -> ( newX, newY ))
