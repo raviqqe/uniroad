@@ -2,6 +2,7 @@ module Floor exposing (Floor, generate, generatePosition, inside, view)
 
 import Css exposing (..)
 import Direction exposing (..)
+import Division exposing (Division)
 import Html.Styled exposing (Html, div, styled, text)
 import Maybe
 import Position exposing (Position)
@@ -20,18 +21,96 @@ type alias Floor =
 generate : Generator Floor
 generate =
     let
+        size : Int
         size =
             32
-    in
-    case Room.generate ( 1, 1 ) ( size, size ) of
-        Just roomGenerator ->
-            Random.map
-                (\room -> { size = size, validPositions = Room.toPositions room })
-                roomGenerator
 
-        Nothing ->
-            -- unreachable
-            Random.constant { size = 0, validPositions = Set.empty }
+        splitDivisionHorizontally : Division -> Generator (List Division)
+        splitDivisionHorizontally division =
+            let
+                ( left, top ) =
+                    division.leftTop
+
+                ( right, bottom ) =
+                    division.rightBottom
+
+                minSeparator =
+                    left + 2 + Room.minimumSize
+
+                maxSeparator =
+                    right - 2 - Room.minimumSize
+            in
+            if minSeparator > maxSeparator then
+                Random.constant [ division ]
+
+            else
+                Random.int minSeparator maxSeparator
+                    |> Random.andThen
+                        (\separator ->
+                            Random.map2
+                                (++)
+                                (splitDivisionVertically
+                                    (Division.init division.leftTop ( separator - 1, bottom ))
+                                )
+                                (splitDivisionVertically
+                                    (Division.init ( separator + 1, top ) division.rightBottom)
+                                )
+                        )
+
+        splitDivisionVertically : Division -> Generator (List Division)
+        splitDivisionVertically division =
+            let
+                ( left, top ) =
+                    division.leftTop
+
+                ( right, bottom ) =
+                    division.rightBottom
+
+                minSeparator =
+                    top + 2 + Room.minimumSize
+
+                maxSeparator =
+                    bottom - 2 - Room.minimumSize
+            in
+            if minSeparator > maxSeparator then
+                Random.constant [ division ]
+
+            else
+                Random.int minSeparator maxSeparator
+                    |> Random.andThen
+                        (\separator ->
+                            Random.map2
+                                (++)
+                                (splitDivisionHorizontally
+                                    (Division.init division.leftTop ( right, separator - 1 ))
+                                )
+                                (splitDivisionHorizontally
+                                    (Division.init ( left, separator + 1 ) division.rightBottom)
+                                )
+                        )
+    in
+    splitDivisionVertically (Division.init ( 1, 1 ) ( size, size ))
+        |> Random.map (List.map (\division -> Room.generate division.leftTop division.rightBottom))
+        |> Random.andThen
+            (\list ->
+                List.map
+                    (\maybe ->
+                        case maybe of
+                            Nothing ->
+                                []
+
+                            Just roomGenerator ->
+                                [ roomGenerator ]
+                    )
+                    list
+                    |> List.concat
+                    |> List.foldr
+                        (Random.map2
+                            (\room set -> Set.union (Room.toPositions room) set)
+                        )
+                        (Random.constant Set.empty)
+            )
+        |> Random.map (\positions -> { size = size, validPositions = positions })
 
 
 inside : Floor -> Position -> Bool

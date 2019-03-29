@@ -17,18 +17,20 @@ init leftTop rightBottom =
 
 generate : Position -> Position -> Maybe (Generator Room)
 generate ( minX, minY ) ( maxX, maxY ) =
-    if maxX - minX < minimumSize + 1 || maxY - minY < minimumSize + 1 then
+    if maxX - minX - 1 < minimumSize || maxY - minY - 1 < minimumSize then
         Nothing
 
     else
-        Position.generate ( minX + 1, maxX - 1 - minimumSize ) ( minY + 1, maxY - 1 - minimumSize )
+        Position.generate ( minX + 1, maxX - minimumSize ) ( minY + 1, maxY - minimumSize )
             |> Random.andThen
                 (\leftTop ->
                     let
                         ( x, y ) =
                             leftTop
                     in
-                    Position.generate ( x + minimumSize, maxX - 1 ) ( y + minimumSize, maxY - 1 )
+                    Position.generate
+                        ( x + minimumSize - 1, maxX - 1 )
+                        ( y + minimumSize - 1, maxY - 1 )
                         |> Random.map (\rightBottom -> init leftTop rightBottom)
                 )
             |> Just
