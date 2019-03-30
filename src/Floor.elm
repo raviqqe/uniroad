@@ -132,8 +132,7 @@ generate =
                                         (\( x, y ) -> 1 <= x && x <= size && 1 <= y && y <= size)
                             )
                 )
-                >> List.map
-                    (Maybe.map List.singleton >> Maybe.withDefault [])
+                >> List.map (Maybe.map List.singleton >> Maybe.withDefault [])
                 >> List.concat
                 >> List.foldr
                     (Random.map2 (\positions set -> Set.union positions set))
