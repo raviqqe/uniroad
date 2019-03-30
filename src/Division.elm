@@ -1,4 +1,4 @@
-module Division exposing (Division, init, toSeparatorPositions)
+module Division exposing (Division, init, toCorridorPositions)
 
 import Position exposing (Position)
 import Set exposing (Set)
@@ -13,8 +13,8 @@ init leftTop rightBottom =
     { leftTop = leftTop, rightBottom = rightBottom }
 
 
-toSeparatorPositions : Division -> Set Position
-toSeparatorPositions division =
+toCorridorPositions : Division -> Set Position
+toCorridorPositions division =
     let
         ( left, top ) =
             division.leftTop

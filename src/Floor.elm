@@ -127,7 +127,7 @@ generate =
                             (\room ->
                                 Set.union
                                     (Room.toPositions room)
-                                    (Division.toSeparatorPositions division)
+                                    (Division.toCorridorPositions division)
                                     |> Set.filter
                                         (\( x, y ) -> 1 <= x && x <= size && 1 <= y && y <= size)
                             )
