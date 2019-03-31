@@ -5,8 +5,9 @@ import Floor exposing (Floor)
 import Hero exposing (Hero)
 import Html.Styled exposing (Html, div, styled, text)
 import List exposing (map, range)
-import Position
+import Position exposing (Position)
 import Random exposing (Generator)
+import Set exposing (Set)
 import Stairs exposing (Stairs)
 
 
@@ -89,7 +90,7 @@ generate dungeon =
                         (\position stairs ->
                             Ok
                                 { floor = floor
-                                , hero = Hero.init position
+                                , hero = Hero.init position floor
                                 , stairs = stairs
                                 , level =
                                     Maybe.withDefault
@@ -146,12 +147,20 @@ view dungeon =
                                 []
                                 (map
                                     (\x ->
+                                        let
+                                            position =
+                                                ( x, y )
+                                        in
                                         Floor.view floor
-                                            (Position.init x y)
-                                            (if hero.position == Position.init x y then
+                                            position
+                                            (if hero.position == position then
                                                 [ Html.Styled.map HeroMsg (Hero.view hero) ]
 
-                                             else if stairs.position == Position.init x y then
+                                             else if
+                                                Set.member position hero.sight
+                                                    && stairs.position
+                                                    == position
+                                             then
                                                 [ Html.Styled.map (\_ -> None) (Stairs.view stairs) ]
 
                                              else
