@@ -153,7 +153,60 @@ generate =
                     (Random.constant Set.empty)
             )
         |> Random.map (Set.filter (\( x, y ) -> 1 <= x && x <= size && 1 <= y && y <= size))
+        |> Random.map removeEdges
         |> Random.map (\positions -> { size = size, positions = positions })
+
+
+removeEdges : Set Position -> Set Position
+removeEdges originalPositions =
+    let
+        isEdge : Set Position -> Position -> Bool
+        isEdge positions position =
+            let
+                nextPositionInside direction =
+                    Set.member (Position.move position direction) positions
+            in
+            Set.member position positions
+                && List.sum
+                    (List.map
+                        (\bool ->
+                            if bool then
+                                1
+
+                            else
+                                0
+                        )
+                        [ nextPositionInside Left
+                        , nextPositionInside Right
+                        , nextPositionInside Up
+                        , nextPositionInside Down
+                        ]
+                    )
+                < 2
+
+        edgeToPositions : Set Position -> Position -> Set Position
+        edgeToPositions positions position =
+            if isEdge positions position then
+                Set.insert
+                    position
+                    ([ Left, Right, Up, Down ]
+                        |> List.map
+                            (Position.move position
+                                >> edgeToPositions (Set.remove position positions)
+                            )
+                        |> List.foldr Set.union Set.empty
+                    )
+
+            else
+                Set.empty
+    in
+    Set.diff
+        originalPositions
+        (originalPositions
+            |> Set.toList
+            |> List.map (edgeToPositions originalPositions)
+            |> List.foldr Set.union Set.empty
+        )
 
 
 inside : Floor -> Position -> Bool
