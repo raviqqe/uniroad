@@ -181,40 +181,18 @@ view floor position children =
         , alignItems center
         , width (em 1)
         , height (em 1)
+        , backgroundColor
+            (hex
+                (if inside floor position then
+                    "#0000ff22"
+
+                 else
+                    "#000000"
+                )
+            )
         ]
         []
-        (if inside floor position then
-            children
-
-         else
-            let
-                isWall =
-                    isNextWall floor position
-
-                isFloor =
-                    not << isWall
-            in
-            if isWall Left && isWall Up && isFloor LeftUp then
-                [ text "'" ]
-
-            else if isWall Left && isWall Down && isFloor LeftDown then
-                [ text "." ]
-
-            else if isWall Right && isWall Up && isFloor RightUp then
-                [ text "`" ]
-
-            else if isWall Right && isWall Down && isFloor RightDown then
-                [ text "," ]
-
-            else if isWall Left && isWall Right && xor (isWall Up) (isWall Down) then
-                [ text "-" ]
-
-            else if isWall Up && isWall Down && xor (isWall Right) (isWall Left) then
-                [ text "|" ]
-
-            else
-                []
-        )
+        children
 
 
 isNextWall : Floor -> Position -> Direction -> Bool
