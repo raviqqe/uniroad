@@ -1,4 +1,4 @@
-module Division exposing (Division, init, toCorridorPositions)
+module Division exposing (Division, bottom, init, left, right, toCorridorPositions, top)
 
 import Position exposing (Position)
 import Set exposing (Set)
@@ -16,23 +16,17 @@ init leftTop rightBottom =
 toCorridorPositions : Division -> Set Position
 toCorridorPositions division =
     let
-        ( left, top ) =
-            division.leftTop
-
-        ( right, bottom ) =
-            division.rightBottom
-
         minX =
-            left - 1
+            left division - 1
 
         maxX =
-            right + 1
+            right division + 1
 
         minY =
-            top - 1
+            top division - 1
 
         maxY =
-            bottom + 1
+            bottom division + 1
     in
     [ List.map (\x -> List.map (\y -> ( x, y )) (List.range minY maxY) ++ []) [ minX, maxX ]
     , List.map (\y -> List.map (\x -> ( x, y )) (List.range minX maxX) ++ []) [ minY, maxY ]
@@ -40,3 +34,23 @@ toCorridorPositions division =
         |> List.concat
         |> List.concat
         |> Set.fromList
+
+
+left : Division -> Int
+left division =
+    Position.x division.leftTop
+
+
+right : Division -> Int
+right division =
+    Position.x division.rightBottom
+
+
+top : Division -> Int
+top division =
+    Position.y division.leftTop
+
+
+bottom : Division -> Int
+bottom division =
+    Position.y division.rightBottom

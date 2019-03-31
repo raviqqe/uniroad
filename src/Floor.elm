@@ -123,13 +123,27 @@ generate =
             (List.map
                 (\division ->
                     Room.generate division.leftTop division.rightBottom
-                        |> (Random.map >> Maybe.map)
+                        |> (Random.andThen >> Maybe.map)
                             (\room ->
-                                Set.union
-                                    (Room.toPositions room)
-                                    (Division.toCorridorPositions division)
-                                    |> Set.filter
-                                        (\( x, y ) -> 1 <= x && x <= size && 1 <= y && y <= size)
+                                let
+                                    roomPositions : Set Position
+                                    roomPositions =
+                                        Set.union
+                                            (Room.toPositions room)
+                                            (Division.toCorridorPositions division)
+                                in
+                                Room.toConnectionPositions room
+                                    division
+                                    (Division.init ( 1, 1 ) ( size, size ))
+                                    |> Random.map
+                                        (\maybeConnectionPositions ->
+                                            case maybeConnectionPositions of
+                                                Just connectionPositions ->
+                                                    Set.union roomPositions connectionPositions
+
+                                                Nothing ->
+                                                    roomPositions
+                                        )
                             )
                 )
                 >> List.map (Maybe.map List.singleton >> Maybe.withDefault [])
@@ -138,6 +152,7 @@ generate =
                     (Random.map2 (\positions set -> Set.union positions set))
                     (Random.constant Set.empty)
             )
+        |> Random.map (Set.filter (\( x, y ) -> 1 <= x && x <= size && 1 <= y && y <= size))
         |> Random.map (\positions -> { size = size, positions = positions })
 
 
